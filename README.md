@@ -120,21 +120,6 @@ pip install -r requirements.txt
 To run the test suite:
 ```bash pytest tests/ ```
 
-# 📚 Citation
-
-If you use this library in your research, please cite:
-
-```bibtex
-@misc{your2025frame,
-  title={FRAME: Robust and Hybrid Feature Ranking Aggregation for Classification and Regression},
-  author={Your Name and Collaborators},
-  year={2025},
-  eprint={arXiv:2504.xxxxx},
-  archivePrefix={arXiv},
-  primaryClass={cs.LG}
-}
-```
-
 # 🤝 Contributing
 - Contributions are welcome! To contribute:
 - Fork the repository.
