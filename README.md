@@ -6,7 +6,7 @@ FRAME-FEATURE-SELECTOR is a Python library that implements **FRAME** (Forward Re
 
 ## 🧠 What is FRAME?
 
-**FRAME** is a hybrid feature selection method proposed in the [FRAME paper on arXiv](https://arxiv.org/abs/2310.03513) that aggregates feature importance scores across multiple traditional techniques and model evaluations. Instead of relying on a single feature selector, FRAME combines the strengths of Forward Feature Selection and RFE(Recursive Feature selection) with XGBoost as estimator to produce a ranked list of features. This approach reduces bias, improves generalizability, and offers more reliable performance across diverse datasets. It aggregates feature importance scores across multiple traditional techniques using recursive evaluation loops.
+**FRAME** is a hybrid feature selection method proposed in the [FRAME paper on arXiv](https://arxiv.org/abs/2501.11972) that aggregates feature importance scores across multiple traditional techniques and model evaluations. Instead of relying on a single feature selector, FRAME combines the strengths of Forward Feature Selection and RFE(Recursive Feature selection) with XGBoost as estimator to produce a ranked list of features. This approach reduces bias, improves generalizability, and offers more reliable performance across diverse datasets. It aggregates feature importance scores across multiple traditional techniques using recursive evaluation loops.
 
 ---
 
