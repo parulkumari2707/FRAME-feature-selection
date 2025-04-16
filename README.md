@@ -1,23 +1,28 @@
 # FRAME-FEATURE-SELECTOR
 
-FRAME-FEATURE-SELECTOR is a Python library that implements **FRAME** (Feature Ranking and Aggregation using Multiple Evaluators), a robust and interpretable feature selection technique for both classification and regression tasks. It allows practitioners and researchers to compare FRAME with other traditional feature selection methods and evaluate its performance on various datasets.
+FRAME-FEATURE-SELECTOR is a Python library that implements **FRAME** (Forward Recursive Adaptive Model Extraction), a robust and interpretable feature selection technique for both classification and regression tasks. It allows practitioners and researchers to compare FRAME with other traditional feature selection methods and evaluate its performance on various datasets.
 
 ---
 
 ## 🧠 What is FRAME?
 
-**FRAME** is a hybrid feature selection method that aggregates feature importance scores across multiple traditional techniques and model evaluations. Instead of relying on a single feature selector, FRAME combines the strengths of multiple evaluators (e.g., mutual information, Lasso, tree-based, recursive feature elimination) to produce a ranked list of features. This approach reduces bias, improves generalizability, and offers more reliable performance across diverse datasets.
+**FRAME** is a hybrid feature selection method proposed in the [FRAME paper on arXiv](https://arxiv.org/abs/2310.03513) that aggregates feature importance scores across multiple traditional techniques and model evaluations. Instead of relying on a single feature selector, FRAME combines the strengths of Forward Feature Selection and RFE(Recursive Feature selection) with XGBoost as estimator to produce a ranked list of features. This approach reduces bias, improves generalizability, and offers more reliable performance across diverse datasets. It aggregates feature importance scores across multiple traditional techniques using recursive evaluation loops.
 
 ---
 
 ## 📦 Installation
 
-To install FRAME-FEATURE-SELECTOR from source:
+- To install FRAME-FEATURE-SELECTOR from source:
 
 ```bash
 git clone https://github.com/parulkumari2707@gmail.com/FRAME-FEATURE-SELECTOR.git
 cd FRAME-FEATURE-SELECTOR
 pip install -e
+```
+
+- To install from PyPI:
+ ```bash
+ pip install frame-feature-selector
 ```
 
 # 🚀 Key Features
@@ -38,7 +43,7 @@ FRAME:
 
 #🧪 Example Usage
 ```bash
-from frame.selector import FrameSelector
+from frame.frame_selector import FRAMESelector
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
 
@@ -46,7 +51,7 @@ from sklearn.ensemble import RandomForestClassifier
 X, y = load_iris(return_X_y=True)
 
 # Initialize FRAME
-fs = FrameSelector(task="classification", top_k=5)
+fs = FRAMESelector(top_k=8, num_features=5, model=XGBRegressor())
 
 # Fit and transform data
 X_selected = fs.fit_transform(X, y)
