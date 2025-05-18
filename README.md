@@ -43,7 +43,7 @@ FRAME:
 
 # 🧪 Example Usage
 
-#Classification Example (Cardiovascular Data)
+### Classification Example (Cardiovascular Data)
 ```bash
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -73,7 +73,7 @@ X_selected = frame_selector.fit_transform(X_train, y_train)
 # Check selected features
 print("Selected Features:", frame_selector.selected_features_)
 ```
-# Regression Example (Student Performance Data)
+### Regression Example (Student Performance Data)
 ```bash
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -122,8 +122,7 @@ print("Transformed X shape:", X_selected.shape)
 | verbose        | bool      | If `True`, prints progress and debug information                            |
 | scalers        | bool      | Apply scaling (e.g., `StandardScaler`) before selection                     |
 | normalize      | bool      | Normalize features if set to `True`                                         |
-| return_scores  | bool      | Whether to return feature importance sc
-                               |
+| return_scores  | bool      | Whether to return feature importance sc                                     |
 
 # 📋 Requirements
 - Python ≥ 3.7
@@ -154,7 +153,7 @@ pytest tests/test_frame_regression.py
 ```
 
 # 🤝 Contributing
-- Contributions are welcome! To contribute:
+Contributions are welcome! To contribute:
 - Fork the repository.
 - Create a new branch (git checkout -b feature-new).
 - Make your changes.
