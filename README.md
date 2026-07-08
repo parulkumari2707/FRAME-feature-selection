@@ -18,13 +18,16 @@ expectations honest, here is what ships **today** versus what is on the **roadma
 - Works with the default XGBoost estimator or any user-supplied sklearn estimator.
 - Automatic task detection (classification vs regression).
 - `random_state` for reproducible selection.
+- `num_features='auto'` (score-plateau forward selection via `tol`).
+- Feature importances exposed: `ranking_`, `scores_`, and `get_feature_scores()`.
+- `n_jobs` (parallel forward-selection CV) and `verbose` progress output.
 
 **🚧 On the roadmap (not yet implemented)**
 - Multi-technique consensus ranking / importance aggregation.
 - Stability selection (bootstrap selection frequency).
-- Automatic `num_features` selection.
-- `return_scores`, `verbose`, and built-in scaling/normalization options.
+- Built-in scaling/normalization options.
 - SHAP-based selection mode and a reproducible benchmark suite.
+- (Feature scores now ship via `scores_` / `get_feature_scores()`.)
 
 > Parameters and features marked *(planned)* below are part of this roadmap and are
 > not available in the current release.
@@ -142,14 +145,15 @@ print("Transformed X shape:", X_selected.shape)
 | Parameter      | Type      | Status        | Description                                                                 |
 |----------------|-----------|---------------|-----------------------------------------------------------------------------|
 | model          | object    | ✅ Available   | Base estimator (e.g., `XGBClassifier`, `LinearRegression`, etc.). Defaults to XGBoost. |
-| num_features   | int       | ✅ Available   | Final number of features to select. Defaults to `n_features // 2`.          |
+| num_features   | int/str   | ✅ Available   | Final number of features; int, None (→ `n_features // 2`), or `'auto'`.     |
 | top_k          | int       | ✅ Available   | Number of features RFE keeps before forward selection (default 20).         |
 | random_state   | int       | ✅ Available   | Random seed for reproducibility (seeds the default estimator).              |
+| n_jobs         | int       | ✅ Available   | Parallelism for forward-selection CV and the default estimator.            |
+| verbose        | int       | ✅ Available   | 0 silent, 1 stage banners, 2 adds timing.                                  |
+| tol            | float     | ✅ Available   | Stop tolerance for `num_features='auto'`.                                  |
 | task           | str       | 🚧 Planned    | Task type: `'classification'` or `'regression'` (currently auto-detected).  |
-| verbose        | bool      | 🚧 Planned    | If `True`, prints progress and debug information.                           |
 | scalers        | bool      | 🚧 Planned    | Apply scaling (e.g., `StandardScaler`) before selection.                    |
 | normalize      | bool      | 🚧 Planned    | Normalize features if set to `True`.                                        |
-| return_scores  | bool      | 🚧 Planned    | Whether to return feature importance scores.                               |
 
 # 📋 Requirements
 - Python ≥ 3.9
