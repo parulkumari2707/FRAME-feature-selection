@@ -37,23 +37,25 @@ htmlcov/
 .tox/
 .nox/
 .coverage
+.coverage.*
 coverage.xml
-.cache
-pytest_cache/
+.cache/
+.pytest_cache/
 nosetests.xml
 test-results/
 
 # Environments
 .env
-.venv
-env/
+.env.*
+.venv/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
 
 # Jupyter Notebook checkpoints
-.ipynb_checkpoints
+.ipynb_checkpoints/
 
 # IDEs and editors
 .vscode/
@@ -70,7 +72,17 @@ desktop.ini
 # Logs
 *.log
 
+# Python tooling
+.mypy_cache/
+.ruff_cache/
+
 # Project-specific
 examples/__pycache__/
 *.pkl
 *.csv
+
+# Claude Code (local only)
+.claude/
+
+# Personal notes
+work.md

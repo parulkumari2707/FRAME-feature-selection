@@ -1,39 +1,39 @@
-import numpy as np
+"""Student-performance (regression) smoke test.
+
+Runs only when the (gitignored) dataset CSV is available locally; skips cleanly
+otherwise so the suite stays green on a fresh clone. See CLAUDE.md.
+"""
+
+import os
+
 import pandas as pd
-from sklearn.model_selection import train_test_split
+import pytest
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+
 from frame.frame_selector import FRAMESelector
 
-# Load Student Performance dataset
-student_df = pd.read_csv("data/student_data_student_performance.csv")
-
-# Define features and target
-X_student: pd.DataFrame = student_df.drop(columns=["G3"], errors="ignore")  # Drop target column
-y_student: pd.Series = student_df["G3"]  # Target column
-
-# Handle missing values if any
-X_student.fillna(X_student.mean(), inplace=True)
-for col in X_student.select_dtypes(include=["object"]).columns:
-    X_student[col].fillna(X_student[col].mode()[0], inplace=True)
-
-# Convert categorical variables to numerical if necessary
-X_student = pd.get_dummies(X_student, drop_first=True)
-
-# Split data
-X_train_student: pd.DataFrame
-X_test_student: pd.DataFrame
-y_train_student: pd.Series
-y_test_student: pd.Series
-X_train_student, X_test_student, y_train_student, y_test_student = train_test_split(
-    X_student, y_student, test_size=0.2, random_state=42
+DATA_PATH = "data/student_data_student_performance.csv"
+pytestmark = pytest.mark.skipif(
+    not os.path.exists(DATA_PATH),
+    reason=f"dataset '{DATA_PATH}' not committed; see CLAUDE.md",
 )
 
-# Apply FRAME Selector for student dataset regression
-print("\n=== Running FRAME Feature Selection for Student Performance Regression ===")
-regressor_model = LinearRegression()
-frame_selector_student = FRAMESelector(model=regressor_model, num_features=5)
-X_train_selected_student: pd.DataFrame = frame_selector_student.fit_transform(X_train_student, y_train_student)
 
-# Print selected features and transformed data shape
-print("Selected Features (Student Performance Regression):", frame_selector_student.selected_features_)
-print("Transformed X_train shape:", X_train_selected_student.shape)
+def test_frame_on_student():
+    df = pd.read_csv(DATA_PATH)
+    X = df.drop(columns=["G3"], errors="ignore")
+    y = df["G3"]
+
+    X = X.fillna(X.mean(numeric_only=True))
+    for col in X.select_dtypes(include=["object"]).columns:
+        X[col] = X[col].fillna(X[col].mode()[0])
+    X = pd.get_dummies(X, drop_first=True)
+
+    X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    selector = FRAMESelector(model=LinearRegression(), num_features=5, random_state=42)
+    X_selected = selector.fit_transform(X_train, y_train)
+
+    assert len(selector.selected_features_) == 5
+    assert X_selected.shape[1] == 5

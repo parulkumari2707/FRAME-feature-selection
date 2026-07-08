@@ -4,6 +4,33 @@ FRAME-FEATURE-SELECTOR is a Python library that implements **FRAME** (Forward Re
 
 ---
 
+## 📌 Project Status
+
+FRAME is under active development toward the full vision described below. To keep
+expectations honest, here is what ships **today** versus what is on the **roadmap**.
+
+**✅ Available now (v0.1.x)**
+- Two-stage hybrid selection: `RFE` (→ `top_k`) followed by forward
+  `SequentialFeatureSelector` (→ `num_features`).
+- scikit-learn–compatible transformer: `fit`, `transform`, `fit_transform`,
+  `get_support`, `get_feature_names_out`, plus `n_features_in_` /
+  `feature_names_in_`. Drops into `Pipeline` and `ColumnTransformer`.
+- Works with the default XGBoost estimator or any user-supplied sklearn estimator.
+- Automatic task detection (classification vs regression).
+- `random_state` for reproducible selection.
+
+**🚧 On the roadmap (not yet implemented)**
+- Multi-technique consensus ranking / importance aggregation.
+- Stability selection (bootstrap selection frequency).
+- Automatic `num_features` selection.
+- `return_scores`, `verbose`, and built-in scaling/normalization options.
+- SHAP-based selection mode and a reproducible benchmark suite.
+
+> Parameters and features marked *(planned)* below are part of this roadmap and are
+> not available in the current release.
+
+---
+
 ## 🧠 What is FRAME?
 
 **FRAME** is a hybrid feature selection method proposed in the [FRAME paper on arXiv](https://arxiv.org/abs/2501.11972) that aggregates feature importance scores across multiple traditional techniques and model evaluations. Instead of relying on a single feature selector, FRAME combines the strengths of Forward Feature Selection and RFE(Recursive Feature selection) with XGBoost as estimator to produce a ranked list of features. This approach reduces bias, improves generalizability, and offers more reliable performance across diverse datasets. It aggregates feature importance scores across multiple traditional techniques using recursive evaluation loops.
@@ -15,9 +42,9 @@ FRAME-FEATURE-SELECTOR is a Python library that implements **FRAME** (Forward Re
 - To install FRAME-FEATURE-SELECTOR from source:
 
 ```bash
-git clone https://github.com/parulkumari2707@gmail.com/FRAME-FEATURE-SELECTOR.git
+git clone https://github.com/parulkumari2707/FRAME-FEATURE-SELECTOR.git
 cd FRAME-FEATURE-SELECTOR
-pip install -e
+pip install -e .
 ```
 
 - To install from PyPI:
@@ -64,8 +91,8 @@ for col in X.select_dtypes(include=["object"]).columns:
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Initialize FRAME with XGBClassifier
-model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
-frame_selector = FRAMESelector(model=model, num_features=5)
+model = XGBClassifier(eval_metric='logloss', random_state=42)
+frame_selector = FRAMESelector(model=model, num_features=5, random_state=42)
 
 # Fit and transform data
 X_selected = frame_selector.fit_transform(X_train, y_train)
@@ -112,24 +139,24 @@ print("Transformed X shape:", X_selected.shape)
 
 # 🛠 Parameters
 
-| Parameter      | Type      | Description                                                                 |
-|----------------|-----------|-----------------------------------------------------------------------------|
-| model          | object    | Base estimator (e.g., `XGBClassifier`, `LinearRegression`, etc.)            |
-| num_features   | int       | Final number of features to select                                          |
-| top_k          | int       | Number of top features to keep after initial filtering                      |
-| task           | str       | Task type: `'classification'` or `'regression'` (auto-detected if not specified) |
-| random_state   | int       | Random seed for reproducibility                                             |
-| verbose        | bool      | If `True`, prints progress and debug information                            |
-| scalers        | bool      | Apply scaling (e.g., `StandardScaler`) before selection                     |
-| normalize      | bool      | Normalize features if set to `True`                                         |
-| return_scores  | bool      | Whether to return feature importance sc                                     |
+| Parameter      | Type      | Status        | Description                                                                 |
+|----------------|-----------|---------------|-----------------------------------------------------------------------------|
+| model          | object    | ✅ Available   | Base estimator (e.g., `XGBClassifier`, `LinearRegression`, etc.). Defaults to XGBoost. |
+| num_features   | int       | ✅ Available   | Final number of features to select. Defaults to `n_features // 2`.          |
+| top_k          | int       | ✅ Available   | Number of features RFE keeps before forward selection (default 20).         |
+| random_state   | int       | ✅ Available   | Random seed for reproducibility (seeds the default estimator).              |
+| task           | str       | 🚧 Planned    | Task type: `'classification'` or `'regression'` (currently auto-detected).  |
+| verbose        | bool      | 🚧 Planned    | If `True`, prints progress and debug information.                           |
+| scalers        | bool      | 🚧 Planned    | Apply scaling (e.g., `StandardScaler`) before selection.                    |
+| normalize      | bool      | 🚧 Planned    | Normalize features if set to `True`.                                        |
+| return_scores  | bool      | 🚧 Planned    | Whether to return feature importance scores.                               |
 
 # 📋 Requirements
-- Python ≥ 3.7
+- Python ≥ 3.9
 - NumPy
 - pandas
-- scikit-learn
-- scipy
+- scikit-learn ≥ 1.1
+- xgboost
 
 # Install dependencies via:
 ``` bash
