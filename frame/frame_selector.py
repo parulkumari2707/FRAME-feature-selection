@@ -37,14 +37,20 @@ class FRAMESelector(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         model: Optional[Union[XGBClassifier, XGBRegressor]] = None,
-        num_features: Optional[int] = None,
+        num_features: Optional[Union[int, str]] = None,
         top_k: int = 20,
         random_state: Optional[int] = None,
+        n_jobs: Optional[int] = None,
+        verbose: int = 0,
+        tol: Optional[float] = None,
     ):
         self.model = model
         self.num_features = num_features
         self.top_k = top_k
         self.random_state = random_state
+        self.n_jobs = n_jobs
+        self.verbose = verbose
+        self.tol = tol
 
     def fit(
         self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray]
@@ -84,11 +90,24 @@ class FRAMESelector(BaseEstimator, TransformerMixin):
                 f"top_k={self.top_k} is greater than the number of features ({X.shape[1]})."
             )
 
-        num_features = self.num_features if self.num_features else max(1, X.shape[1] // 2)
-        if num_features > self.top_k:
-            raise ValueError(
-                f"num_features={num_features} cannot be greater than top_k={self.top_k}."
-            )
+        nf = self.num_features
+        if nf is None:
+            sfs_n_features = max(1, X.shape[1] // 2)
+        elif isinstance(nf, str):
+            if nf != "auto":
+                raise ValueError(
+                    f"num_features must be None, a positive int, or 'auto'; got {nf!r}."
+                )
+            sfs_n_features = "auto"
+        elif isinstance(nf, (int, np.integer)) and not isinstance(nf, bool) and nf > 0:
+            resolved_n = int(nf)
+            if resolved_n > self.top_k:
+                raise ValueError(
+                    f"num_features={resolved_n} cannot be greater than top_k={self.top_k}."
+                )
+            sfs_n_features = resolved_n
+        else:
+            raise ValueError(f"num_features must be None, a positive int, or 'auto'; got {nf!r}.")
 
         # Record input metadata (scikit-learn convention).
         self.n_features_in_ = X.shape[1]
@@ -102,9 +121,13 @@ class FRAMESelector(BaseEstimator, TransformerMixin):
         # (sklearn contract): resolve the estimator into a fitted attribute.
         if self.model is None:
             self.model_ = (
-                XGBClassifier(eval_metric="logloss", random_state=self.random_state)
+                XGBClassifier(
+                    eval_metric="logloss",
+                    random_state=self.random_state,
+                    n_jobs=self.n_jobs,
+                )
                 if is_classification
-                else XGBRegressor(random_state=self.random_state)
+                else XGBRegressor(random_state=self.random_state, n_jobs=self.n_jobs)
             )
         else:
             self.model_ = clone(self.model)
@@ -115,9 +138,14 @@ class FRAMESelector(BaseEstimator, TransformerMixin):
         rfe_selected_features = X.columns[rfe.support_]
 
         # Step 2: Forward Selection
-        forward_selector = SequentialFeatureSelector(
-            self.model_, n_features_to_select=num_features, direction="forward"
+        sfs_kwargs = dict(
+            n_features_to_select=sfs_n_features,
+            direction="forward",
+            n_jobs=self.n_jobs,
         )
+        if sfs_n_features == "auto":
+            sfs_kwargs["tol"] = self.tol
+        forward_selector = SequentialFeatureSelector(self.model_, **sfs_kwargs)
         forward_selector.fit(X[rfe_selected_features], y)
         final_selected_features = rfe_selected_features[forward_selector.get_support()]
 
