@@ -89,3 +89,18 @@ def test_informative_features_rank_better_than_noise():
     informative_ranks = s.ranking_[:4]
     noise_ranks = s.ranking_[4:]
     assert informative_ranks.max() < noise_ranks.min()
+
+
+def test_get_feature_scores_sorted_series(clf_data):
+    X, y = clf_data
+    s = FRAMESelector(num_features=4, top_k=8, random_state=0).fit(X, y)
+    fs = s.get_feature_scores()
+    assert isinstance(fs, pd.Series)
+    assert list(fs.index) == list(fs.sort_values(ascending=False).index)
+    assert set(fs.index) == set(X.columns)
+    assert len(fs) == X.shape[1]
+
+
+def test_get_feature_scores_before_fit_raises():
+    with pytest.raises(RuntimeError):
+        FRAMESelector().get_feature_scores()

@@ -269,6 +269,24 @@ class FRAMESelector(BaseEstimator, TransformerMixin):
             )
         return np.asarray(self.selected_features_, dtype=object)
 
+    def get_feature_scores(self) -> pd.Series:
+        """Return per-feature relevance scores as a sorted pandas Series.
+
+        Returns
+        -------
+        pd.Series
+            Scores indexed by input feature name, sorted descending
+            (highest relevance first).
+        """
+        if not hasattr(self, "scores_"):
+            raise RuntimeError(
+                "The FRAMESelector has not been fitted yet. "
+                "Call fit() before get_feature_scores()."
+            )
+        return pd.Series(self.scores_, index=self.feature_names_in_, name="score").sort_values(
+            ascending=False
+        )
+
     def fit_transform(
         self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray]
     ) -> pd.DataFrame:
