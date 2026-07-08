@@ -104,3 +104,25 @@ def test_get_feature_scores_sorted_series(clf_data):
 def test_get_feature_scores_before_fit_raises():
     with pytest.raises(RuntimeError):
         FRAMESelector().get_feature_scores()
+
+
+def test_verbose_zero_is_silent(clf_data, capsys):
+    X, y = clf_data
+    FRAMESelector(num_features=4, top_k=8, random_state=0, verbose=0).fit(X, y)
+    assert capsys.readouterr().out == ""
+
+
+def test_verbose_one_prints_stage_banners(clf_data, capsys):
+    X, y = clf_data
+    FRAMESelector(num_features=4, top_k=8, random_state=0, verbose=1).fit(X, y)
+    out = capsys.readouterr().out
+    assert "RFE" in out
+    assert "Forward selection" in out
+
+
+def test_verbose_two_includes_timing(clf_data, capsys):
+    X, y = clf_data
+    FRAMESelector(num_features=4, top_k=8, random_state=0, verbose=2).fit(X, y)
+    out = capsys.readouterr().out
+    assert "s" in out  # timing suffix like "in 0.12s"
+    assert "RFE" in out

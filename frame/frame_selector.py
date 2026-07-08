@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import pandas as pd
 from typing import Optional, Union
@@ -150,9 +151,18 @@ class FRAMESelector(BaseEstimator, TransformerMixin):
             self.model_ = clone(self.model)
 
         # Step 1: RFE
+        t_rfe = time.perf_counter()
         rfe = RFE(estimator=self.model_, n_features_to_select=self.top_k)
         rfe.fit(X, y)
         rfe_selected_features = X.columns[rfe.support_]
+        if self.verbose:
+            msg = (
+                f"[FRAME] RFE kept {len(rfe_selected_features)} of "
+                f"{X.shape[1]} features (top_k={self.top_k})"
+            )
+            if self.verbose >= 2:
+                msg += f" in {time.perf_counter() - t_rfe:.2f}s"
+            print(msg)
 
         # Step 2: Forward Selection
         sfs_kwargs = dict(
@@ -162,9 +172,15 @@ class FRAMESelector(BaseEstimator, TransformerMixin):
         )
         if sfs_n_features == "auto":
             sfs_kwargs["tol"] = self.tol
+        t_fwd = time.perf_counter()
         forward_selector = SequentialFeatureSelector(self.model_, **sfs_kwargs)
         forward_selector.fit(X[rfe_selected_features], y)
         final_selected_features = rfe_selected_features[forward_selector.get_support()]
+        if self.verbose:
+            msg = f"[FRAME] Forward selection kept " f"{len(final_selected_features)} features"
+            if self.verbose >= 2:
+                msg += f" in {time.perf_counter() - t_fwd:.2f}s"
+            print(msg)
 
         self.selected_features_ = final_selected_features.tolist()
 
