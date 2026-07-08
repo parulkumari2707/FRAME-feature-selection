@@ -7,6 +7,23 @@ from sklearn.utils.multiclass import type_of_target
 from xgboost import XGBRegressor, XGBClassifier
 
 
+def _get_importances(estimator):
+    """Return per-feature importances from a fitted estimator, or None.
+
+    Uses ``feature_importances_`` when present, else absolute ``coef_`` (summed
+    across outputs for multiclass). Returns None when the estimator exposes
+    neither.
+    """
+    if hasattr(estimator, "feature_importances_"):
+        return np.asarray(estimator.feature_importances_, dtype=float)
+    if hasattr(estimator, "coef_"):
+        coef = np.asarray(estimator.coef_, dtype=float)
+        if coef.ndim > 1:
+            return np.abs(coef).sum(axis=0)
+        return np.abs(coef)
+    return None
+
+
 class FRAMESelector(BaseEstimator, TransformerMixin):
     """
     FRAME Feature Selector: Combines Recursive Feature Elimination (RFE) and Forward Selection
@@ -150,6 +167,36 @@ class FRAMESelector(BaseEstimator, TransformerMixin):
         final_selected_features = rfe_selected_features[forward_selector.get_support()]
 
         self.selected_features_ = final_selected_features.tolist()
+
+        # Fit the resolved estimator on the selected features for scoring.
+        self.model_.fit(X[self.selected_features_], y)
+
+        # scores_: RFE-ranking baseline (higher = better), refined by model
+        # importances for selected features. Aligned to feature_names_in_.
+        scores = 1.0 / rfe.ranking_.astype(float)
+        importances = _get_importances(self.model_)
+        if importances is not None and len(importances) == len(self.selected_features_):
+            for i, feat in enumerate(self.selected_features_):
+                scores[X.columns.get_loc(feat)] = float(importances[i])
+        self.scores_ = scores
+
+        # ranking_: selected features occupy ranks 1..k (by score desc); the rest
+        # follow (by RFE elimination order, better RFE rank first).
+        n = self.n_features_in_
+        ranking = np.empty(n, dtype=int)
+        selected_idx = [X.columns.get_loc(f) for f in self.selected_features_]
+        selected_set = set(selected_idx)
+        for rank, i in enumerate(
+            sorted(selected_idx, key=lambda j: scores[j], reverse=True), start=1
+        ):
+            ranking[i] = rank
+        rest = [i for i in range(n) if i not in selected_set]
+        for rank, i in enumerate(
+            sorted(rest, key=lambda j: rfe.ranking_[j]), start=len(selected_idx) + 1
+        ):
+            ranking[i] = rank
+        self.ranking_ = ranking
+
         return self
 
     def transform(self, X: Union[pd.DataFrame, np.ndarray]) -> pd.DataFrame:
